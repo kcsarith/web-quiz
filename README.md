@@ -274,6 +274,38 @@ To implement a custom TTS provider, configure the `ttsEngine` object in the teac
 
 The application provides several API endpoints to fetch and manage teachers, quizzes, and user preferences:
 
+## API Structure
+
+These API routes provide a clean interface for the frontend to interact with the application's data sources, enabling seamless updates to the UI when changes occur in the underlying data.
+
+```
+nextjs-quiz-app/
+├── app/
+│   ├── api/
+│   │   ├── teachers/
+│   │   │   ├── route.ts
+│   │   │   └── [name]/
+│   │   │       └── route.ts
+│   │   ├── quizzes/
+│   │   │   ├── route.ts
+│   │   │   └── [...path]/
+│   │   │       └── route.ts
+│   │   ├── questions/
+│   │   │   └── [...path]/
+│   │   │       └── route.ts
+│   │   └── userprefs/
+│   │       ├── route.ts
+│   │       └── [username]/
+│   │           ├── route.ts
+│   │           ├── record/
+│   │           |   └── route.ts
+│   │           └── favorite/
+│   │               └── route.ts
+│   │
+│   └── ...
+└── ...
+```
+
 ### Teachers API
 
 ```
@@ -382,38 +414,5 @@ Request body:
 ```
 Returns audio data or a URL to the generated audio.
 
-## Application Structure Update
-
-Add these files to the application structure:
-
-```
-nextjs-quiz-app/
-├── app/
-│   ├── api/
-│   │   ├── teachers/
-│   │   │   ├── route.ts
-│   │   │   └── [name]/
-│   │   │       └── route.ts
-│   │   ├── quizzes/
-│   │   │   ├── route.ts
-│   │   │   └── [...path]/
-│   │   │       └── route.ts
-│   │   ├── questions/
-│   │   │   └── [...path]/
-│   │   │       └── route.ts
-│   │   └── userprefs/
-│   │       ├── route.ts
-│   │       └── [username]/
-│   │           ├── route.ts
-│   │           ├── record/
-│   │           |   └── route.ts
-│   │           └── favorite/
-│   │               └── route.ts
-│   │
-│   └── ...
-└── ...
-```
-
-These API routes provide a clean interface for the frontend to interact with the application's data sources, enabling seamless updates to the UI when changes occur in the underlying data.
 
 This project is designed to be easily extensible for various educational contexts. Feel free to contribute or customize to suit your specific learning needs!
