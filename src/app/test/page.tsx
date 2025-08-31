@@ -1,30 +1,8 @@
 "use client"
 import React, { useState } from "react";
+import { ApiResponseProps, RequestFormProps } from "@/types";
 
-// Types
-interface ApiResponse {
-  status: number;
-  data: any;
-  timestamp: string;
-}
-
-interface RequestFormProps {
-  endpoint: string;
-  setEndpoint: (value: string) => void;
-  method: string;
-  setMethod: (value: string) => void;
-  body: string;
-  setBody: (value: string) => void;
-  onSendRequest: () => void;
-  loading: boolean;
-}
-
-interface ResponseDisplayProps {
-  response: ApiResponse | null;
-  error: string | null;
-  onClear: () => void;
-}
-
+import ResponseDisplay from "@/components/ResponseDisplay";
 interface QuickExamplesProps {
   onExampleClick: (method: string, endpoint: string, body?: string) => void;
 }
@@ -118,73 +96,15 @@ const RequestForm: React.FC<RequestFormProps> = ({
   );
 };
 
-// Response Display Component
-const ResponseDisplay: React.FC<ResponseDisplayProps> = ({
-  response,
-  error,
-  onClear,
-}) => {
-  if (!response && !error) return null;
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">
-          {error ? "Error" : "Response"}
-        </h3>
-        <button
-          onClick={onClear}
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Clear
-        </button>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <h4 className="text-sm font-medium text-red-800 mb-1">Error</h4>
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Response Display */}
-      {response && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-4 pb-2 border-b">
-            <span
-              className={`px-2 py-1 text-xs font-bold rounded ${
-                response.status >= 200 && response.status < 300
-                  ? "bg-green-100 text-green-800"
-                  : response.status >= 400
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
-            >
-              Status: {response.status}
-            </span>
-            <span className="text-sm text-gray-500">
-              {new Date(response.timestamp).toLocaleString()}
-            </span>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Response Body
-            </h4>
-            <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-sm border max-h-96">
-              {JSON.stringify(response.data, null, 2)}
-            </pre>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 // Quick Examples Component
 const QuickExamples: React.FC<QuickExamplesProps> = ({ onExampleClick }) => {
   const examples = [
+    {
+      method: "GET",
+      endpoint: "/api/teachers",
+      description: "Get all teachers mappings",
+      color: "text-green-600",
+    },
     {
       method: "GET",
       endpoint: "/api/quizzes",
@@ -210,6 +130,19 @@ const QuickExamples: React.FC<QuickExamplesProps> = ({ onExampleClick }) => {
       endpoint: "/api/users/1",
       description: "Delete user by ID",
       color: "text-red-600",
+    },
+    {
+      method: "GET",
+      endpoint: "/api/tts",
+      description: "Get all voices",
+      color: "text-green-600",
+    },
+    {
+      method: "POST",
+      endpoint: "/api/tts",
+      body: '{\n  "Text": "This is a test.", \n  "OutputFormat": "mp3", \n  "VoiceId": "Ivy", \n  "SampleRate": "22050"\n}',
+      description: "Create sample audio file",
+      color: "text-purple-600",
     },
   ];
 
@@ -245,7 +178,7 @@ export default function ApiTester() {
   const [body, setBody] = useState(
     '{\n  "name": "example",\n  "email": "test@example.com"\n}'
   );
-  const [response, setResponse] = useState<ApiResponse | null>(null);
+  const [response, setResponse] = useState<ApiResponseProps | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -253,7 +186,6 @@ export default function ApiTester() {
     setLoading(true);
     setError(null);
     setResponse(null);
-
     try {
       const options: RequestInit = {
         method,
@@ -273,7 +205,19 @@ export default function ApiTester() {
       }
 
       const res = await fetch(endpoint, options);
-      const data = await res.json();
+
+      // Check content type to determine how to handle the response
+      const contentType = res.headers.get("content-type") || "";
+
+      let data;
+      if (contentType.includes("audio/") || contentType.includes("video/")) {
+        // Handle audio/video content
+        const blob = await res.blob();
+        data = URL.createObjectURL(blob);
+      } else {
+        // Handle JSON and other content types
+        data = await res.json();
+      }
 
       setResponse({
         status: res.status,
@@ -286,7 +230,6 @@ export default function ApiTester() {
       setLoading(false);
     }
   };
-
   const clearResponse = () => {
     setResponse(null);
     setError(null);
