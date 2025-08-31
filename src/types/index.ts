@@ -34,3 +34,35 @@ export type QuizType = {
     noteImages: ImageOrNull[]
     answers: string[]
 }
+
+export type UserPrefsFavoritesType = {
+    [key: string]: string[];
+}
+
+export type UserPrefsRecordType = {
+    attempts: number;
+    pass: number;
+    lastAttempted: number | null;
+}
+export type UserPrefsRecordsType = {
+    [key: string]: UserPrefsRecordType;
+}
+
+export type UserPrefsType = {
+    username: string,
+    image: ImageOrNull;
+    teacher: string | null;
+    favorites: UserPrefsFavoritesType;
+    records: UserPrefsRecordsType;
+}
+
+export const defaultPrefs: UserPrefsType = {
+    username: "Default",
+    image: null,
+    teacher: null,
+    favorites: {
+        "❤️️ Liked": [],
+        "☠️ Difficult": [],
+    },
+    records: {}
+}

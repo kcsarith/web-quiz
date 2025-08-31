@@ -9,7 +9,7 @@ export async function GET(params: { url: string; }) {
         console.log(teacher)
         const teacherPath = path.join(process.cwd(), "data", "samples", "teachers", teacher, "data.json")
         const teacherContent: string = await fs.readFile(teacherPath, "utf-8")
-        const teacherJson: TeacherType = await JSON.parse(teacherContent) as TeacherType
+        const teacherJson: TeacherType = JSON.parse(teacherContent) as TeacherType
         return NextResponse.json({
             status: 200,
             data: teacherJson,
