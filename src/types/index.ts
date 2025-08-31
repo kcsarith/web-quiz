@@ -1,3 +1,4 @@
+export type ImageOrNull = string | null;
 
 export type TtsEngineType = {
     baseUrl?: string | null;
@@ -22,4 +23,14 @@ export type TeacherType = {
     personality: string;
     ttsEngine: TtsEngineType;
     images: TeacherExpressionsType;
+}
+
+export type QuizType = {
+    question: string;
+    question_images: string[];
+    choices: string[];
+    choiceImages: ImageOrNull[];
+    notes: string[];
+    noteImages: ImageOrNull[]
+    answers: string[]
 }

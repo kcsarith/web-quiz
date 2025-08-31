@@ -1,0 +1,23 @@
+{
+    "question": "WHAT?",
+    "question_images": [],
+    "choices": [
+        "True",
+        "False"
+    ],
+    "choice_images": [
+        null,
+        null
+    ],
+    "notes": [
+        "",
+        "Seems like all descendants of heaps are also heaps, even if there are leaves."
+    ],
+    "note_images": [
+        null,
+        null
+    ],
+    "answers": [
+        "True"
+    ]
+}
