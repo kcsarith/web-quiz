@@ -1,3 +1,28 @@
+
+export interface ApiResponseProps {
+    status: number;
+    data: any;
+    timestamp: string;
+}
+
+export interface RequestFormProps {
+    endpoint: string;
+    setEndpoint: (value: string) => void;
+    method: string;
+    setMethod: (value: string) => void;
+    body: string;
+    setBody: (value: string) => void;
+    onSendRequest: () => void;
+    loading: boolean;
+}
+
+export interface ResponseDisplayProps {
+    response: ApiResponseProps | null;
+    error: string | null;
+    onClear: () => void;
+}
+
+
 export type ImageOrNull = string | null;
 
 export type TtsEngineType = {
