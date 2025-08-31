@@ -1,0 +1,20 @@
+{
+    "username": "Default",
+    "image": null,
+    "teacher": "",
+    "favorites": {
+        "❤️️ Liked": [
+            "samples/sample/000.question"
+        ],
+        "☠️ Difficult": [
+            "samples/sample/000.question"
+        ]
+    },
+    "records": {
+        "samples/sample/000.question": {
+            "attempts": 1,
+            "pass": 1,
+            "lastAttempted": 1756520340
+        }
+    }
+}
