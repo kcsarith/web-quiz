@@ -15,7 +15,7 @@ export async function GET(params: { url: string }) {
             const quizItem: Dirent<string> = quizItems[i];
             if (quizItem.name.includes(".question")) {
                 const quizContents: string = await fs.readFile(path.join(quizItem.path, quizItem.name), "utf-8")
-                const quizObject: QuizType = await JSON.parse(quizContents) as QuizType;
+                const quizObject: QuizType = JSON.parse(quizContents) as QuizType;
                 results.push(quizObject)
             }
         }
