@@ -281,28 +281,29 @@ These API routes provide a clean interface for the frontend to interact with the
 ```
 nextjs-quiz-app/
 ├── app/
-│   ├── api/
-│   │   ├── teachers/
-│   │   │   ├── route.ts
-│   │   │   └── [name]/
-│   │   │       └── route.ts
-│   │   ├── quizzes/
-│   │   │   ├── route.ts
-│   │   │   └── [...path]/
-│   │   │       └── route.ts
-│   │   ├── questions/
-│   │   │   └── [...path]/
-│   │   │       └── route.ts
-│   │   └── userprefs/
-│   │       ├── route.ts
-│   │       └── [username]/
-│   │           ├── route.ts
-│   │           ├── record/
-│   │           |   └── route.ts
-│   │           └── favorite/
-│   │               └── route.ts
-│   │
-│   └── ...
+│   └── src/
+│       ├── api/
+│       │   ├── teachers/
+│       │   │   ├── route.ts
+│       │   │   └── [name]/
+│       │   │       └── route.ts
+│       │   ├── quizzes/
+│       │   │   ├── route.ts
+│       │   │   └── [...path]/
+│       │   │       └── route.ts
+│       │   ├── questions/
+│       │   │   └── [...path]/
+│       │   │       └── route.ts
+│       │   └── userprefs/
+│       │       ├── route.ts
+│       │       └── [username]/
+│       │           ├── route.ts
+│       │           ├── record/
+│       │           |   └── route.ts
+│       │           └── favorite/
+│       │               └── route.ts
+│       │
+│       └── ...
 └── ...
 ```
 
