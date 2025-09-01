@@ -60,8 +60,11 @@ export type QuizType = {
     answers: string[]
 }
 
+export type UserPrefsFavoriteType = {
+    [key: string]: boolean;
+}
 export type UserPrefsFavoritesType = {
-    [key: string]: string[];
+    [key: string]: UserPrefsFavoriteType;
 }
 
 export type UserPrefsRecordType = {
@@ -86,8 +89,8 @@ export const defaultPrefs: UserPrefsType = {
     image: null,
     teacher: null,
     favorites: {
-        "❤️️ Liked": [],
-        "☠️ Difficult": [],
+        "❤️️ Liked": {},
+        "☠️ Difficult": {},
     },
     records: {}
 }
