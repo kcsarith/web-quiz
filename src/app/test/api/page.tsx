@@ -6,7 +6,8 @@ import ResponseDisplay from "@/components/ResponseDisplay";
 interface QuickExamplesProps {
   onExampleClick: (method: string, endpoint: string, body?: string) => void;
 }
-
+import TeacherContainer from "@/components/TeacherContainer";
+import { json } from "stream/consumers";
 // Request Form Component
 const RequestForm: React.FC<RequestFormProps> = ({
   endpoint,
@@ -140,7 +141,14 @@ const QuickExamples: React.FC<QuickExamplesProps> = ({ onExampleClick }) => {
     {
       method: "POST",
       endpoint: "/api/tts",
-      body: '{\n  "Text": "This is a test.", \n  "OutputFormat": "mp3", \n  "VoiceId": "Ivy", \n  "SampleRate": "22050"\n}',
+      body: JSON.stringify({
+        baseUrl: "http://192.168.0.2:8880/v1",
+        model: "kokoro",
+        Text: "This is a test.",
+        OutputFormat: "mp3",
+        VoiceId: "af",
+        SampleRate: "22050",
+      }, null, 2),
       description: "Create sample audio file",
       color: "text-purple-600",
     },
@@ -252,6 +260,7 @@ export default function ApiTester() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border p-6">
+          <TeacherContainer teacherName="nakedApronGirl" />
           <h1 className="text-2xl font-bold text-gray-900 mb-6">API Tester</h1>
 
           {/* Request Form */}
