@@ -1,7 +1,7 @@
 {
     "username": "Default",
     "image": null,
-    "teacher": "",
+    "teacher": "sample__bob",
     "favorites": {
         "❤️️ Liked": [
             "samples/sample/000.question"

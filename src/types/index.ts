@@ -33,12 +33,7 @@ export type TtsEngineType = {
 }
 
 export type TeacherExpressionsType = {
-    neutral: string;
-    happy: string;
-    sad: string;
-    angry: string;
-    worried: string;
-    excited: string;
+    [expression: string]: string;
 }
 
 export type TeacherType = {

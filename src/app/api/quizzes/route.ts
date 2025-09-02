@@ -23,11 +23,7 @@ export async function GET(params: { url: string }) {
                 pathToFileMapping[cleanedPath].push(ele.name);
             }
         })
-        return NextResponse.json({
-            status: 200,
-            data: pathToFileMapping,
-            error: null
-        });
+        return NextResponse.json(pathToFileMapping);
     } catch (e) {
         return NextResponse.json({
             status: 500,
