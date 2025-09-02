@@ -7,9 +7,16 @@ import { QuizType } from "@/types";
 export async function GET(params: { url: string }) {
     const results: QuizType[] = []
     try {
-        const folderPath = params.url.split("quizzes/generated/")[1]
-        const quizPath = path.join(process.cwd(), "data", "quizzes", folderPath)
+        const folderPath = params.url.split("quizzes/")[1]
+        let quizPath = path.join(process.cwd(), "data", "quizzes", folderPath)
 
+        const isSample = folderPath.includes("samples/");
+        quizPath = quizPath.replace("samples/", "");;
+
+        if (isSample) {
+            quizPath = path.join(process.cwd(), "data", "samples", "quizzes", folderPath)
+        }
+        console.log(quizPath);
         const quizItems: Dirent<string>[] = await fs.readdir(quizPath, { withFileTypes: true })
         for (let i = 0; i < quizItems.length; i++) {
             const quizItem: Dirent<string> = quizItems[i];
@@ -19,16 +26,10 @@ export async function GET(params: { url: string }) {
                 results.push(quizObject)
             }
         }
-        return NextResponse.json({
-            status: 200,
-            data: results,
-            error: null
-        });
+        return NextResponse.json(results);
     } catch (e) {
         return NextResponse.json({
-            status: 500,
-            data: results,
             error: e
-        });
+        }, { status: 500 });
     }
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Dirent, promises as fs } from "fs";
 import path from "path";
 import { defaultPrefs, UserPrefsType } from "@/types";
-import { updateObject } from "@/lib";
+import { updateObjectShallow } from "@/lib";
 
 export async function GET(params: { url: string }) {
     try {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             existingFiles.add(ele.split(".")[0])
         });
 
-        const newPrefs = updateObject(defaultPrefs, body) as UserPrefsType;
+        const newPrefs = updateObjectShallow(defaultPrefs, body) as UserPrefsType;
 
         let sequence = 0;
         let nonCollidingUsername = newPrefs.username;
