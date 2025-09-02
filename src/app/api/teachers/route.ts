@@ -11,19 +11,15 @@ export async function GET() {
         const sampleTeacherPaths: Dirent<string>[] = await fs.readdir(sampleTeachersFolder, { withFileTypes: true })
 
         return NextResponse.json({
-            status: 200,
-            data: {
                 generated: generatedTeacherPaths,
                 samples: sampleTeacherPaths
             }
-        })
+        )
 
     } catch (e) {
         console.error(e)
         return NextResponse.json({
-            status: 500,
-            data: null,
             error: e,
-        })
+        }, { status: 500 })
     }
 }
