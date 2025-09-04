@@ -73,3 +73,15 @@ export function readFileAndParseJson(pathToSearch: string): Promise<Record<strin
     })
 
 }
+
+export function removeMiddlePathSegment(path: string, segmentToRemove: string) {
+    const segments = path.split('/');
+    const indexToRemove = segments.indexOf(segmentToRemove);
+
+    if (indexToRemove !== -1) {
+        // Remove the segment at the found index
+        segments.splice(indexToRemove, 1);
+    }
+
+    return segments.join('/');
+}

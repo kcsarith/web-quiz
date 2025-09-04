@@ -4,10 +4,10 @@
     "background": "No experience.",
     "personality": "More encouragement and relaxed teaching style.",
     "ttsEngine": {
-        "baseUrl": "http://192.168.0.2:8880/v1",
+        "baseUrl": null,
         "token": null,
-        "model": "kokoro",
-        "voiceName": "am_adam"
+        "model": null,
+        "voiceName": null
     },
     "images": {
         "neutral": "neutral.jpg",
