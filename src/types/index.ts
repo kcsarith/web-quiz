@@ -32,10 +32,22 @@ export type TtsEngineType = {
     voiceName?: string | null;
 }
 
-export type TeacherExpressionsType = {
-    [expression: string]: string;
+export type SpeechBubble = {
+    message: string;
+    isVisible: boolean;
+    autoHide?: boolean;
+    duration?: number;
 }
 
+
+export type TeacherExpressionsType = {
+    neutral: string;
+    happy: string;
+    sad: string;
+    angry: string;
+    worried: string;
+    excited: string;
+}
 export type TeacherType = {
     name: string;
     gender: string;
@@ -49,9 +61,9 @@ export type QuizType = {
     question: string;
     question_images: string[];
     choices: string[];
-    choiceImages: ImageOrNull[];
+    choice_images: ImageOrNull[];
     notes: string[];
-    noteImages: ImageOrNull[]
+    note_images: ImageOrNull[]
     answers: string[]
 }
 
@@ -72,7 +84,7 @@ export type UserPrefsRecordsType = {
 }
 
 export type UserPrefsType = {
-    username: string,
+    username: string;
     image: ImageOrNull;
     teacher: string | null;
     favorites: UserPrefsFavoritesType;
@@ -88,4 +100,14 @@ export const defaultPrefs: UserPrefsType = {
         "☠️ Difficult": {},
     },
     records: {}
+}
+
+export type LLM_Message = {
+    role: string;
+    content: string;
+}
+
+export type LLM_Props = {
+    model: string;
+    messages: LLM_Message[];
 }

@@ -45,16 +45,23 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     const requestBody = await request.json();
-    try {
 
-        const {
-            baseUrl: baseUrl = "http://192.168.0.2/v1",
-            model = "kokoro",
-            Text: text = "",
-            OutputFormat: outputFormat = OutputFormat.MP3,
-            VoiceId: voiceId = "Ivy",
-            SampleRate: sampleRate = "22050",
-        } = requestBody
+    const {
+        baseUrl: baseUrl,
+        model,
+        Text: text = "Failed to find text",
+        OutputFormat: outputFormat = OutputFormat.MP3,
+        VoiceId: voiceId,
+        SampleRate: sampleRate = "22050",
+    } = requestBody
+    if (!model || !baseUrl || !voiceId) {
+        return NextResponse.json(
+            {
+                text
+            }
+        );
+    }
+    try {
 
         if (requestBody.model === "polly") {
 
@@ -127,13 +134,10 @@ export async function POST(request: NextRequest) {
 
     } catch (e) {
         console.error("Error synthesizing speech:", e);
-        let bodyText = "Couldn't find Text in Payload."
-        if (requestBody.Text) {
-            bodyText = requestBody.Text;
-        }
+        let text = "Couldn't find Text in Payload."
         return NextResponse.json(
             {
-                text: bodyText
+                text: text
             }, { status: 500 }
         );
     }

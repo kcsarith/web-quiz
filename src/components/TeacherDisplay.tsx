@@ -48,15 +48,146 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
   const [isTyping, setIsTyping] = React.useState(false);
   const [currentAudio, setCurrentAudio] =
     React.useState<HTMLAudioElement | null>(null);
+  const [lastMessage, setLastMessage] = React.useState<string>("");
+
+  // Function to detect and format code blocks
+  const formatMessageWithCode = (text: string) => {
+    // Split by code blocks (```language\ncode\n``` pattern)
+    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      // Add text before code block
+      if (match.index > lastIndex) {
+        const beforeText = text.slice(lastIndex, match.index);
+        if (beforeText.trim()) {
+          parts.push({ type: "text", content: beforeText });
+        }
+      }
+
+      // Add code block
+      const language = match[1] || "text";
+      const code = match[2].trim();
+      parts.push({ type: "code", content: code, language });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      const remainingText = text.slice(lastIndex);
+      if (remainingText.trim()) {
+        parts.push({ type: "text", content: remainingText, language: null });
+      }
+    }
+
+    // If no code blocks found, return original text as single part
+    if (parts.length === 0) {
+      // Check for inline code (backticks)
+      const inlineCodeRegex = /`([^`]+)`/g;
+      if (inlineCodeRegex.test(text)) {
+        return formatInlineCode(text);
+      }
+      return [{ type: "text", content: text }];
+    }
+
+    return parts;
+  };
+
+  // Function to format inline code
+  const formatInlineCode = (text: string) => {
+    const inlineCodeRegex = /`([^`]+)`/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = inlineCodeRegex.exec(text)) !== null) {
+      // Add text before inline code
+      if (match.index > lastIndex) {
+        const beforeText = text.slice(lastIndex, match.index);
+        if (beforeText) {
+          parts.push({ type: "text", content: beforeText });
+        }
+      }
+
+      // Add inline code
+      parts.push({ type: "inline-code", content: match[1] });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      const remainingText = text.slice(lastIndex);
+      if (remainingText) {
+        parts.push({ type: "text", content: remainingText });
+      }
+    }
+
+    return parts;
+  };
+
+  // Function to render formatted content
+  const renderFormattedContent = (content: string) => {
+    const parts = formatMessageWithCode(content);
+
+    return (
+      <div className="space-y-2">
+        {parts.map((part, index) => {
+          if (part.type === "code") {
+            return (
+              <div key={index} className="relative">
+                {/* Language label */}
+                {part.language && part.language !== "text" && (
+                  <div className="text-xs text-gray-500 mb-1 font-mono">
+                    {part.language}
+                  </div>
+                )}
+                {/* Code block */}
+                <pre className="bg-gray-900 text-green-400 p-3 rounded-md overflow-x-auto text-xs font-mono max-h-64 overflow-y-auto">
+                  <code>{part.content}</code>
+                </pre>
+              </div>
+            );
+          } else if (part.type === "inline-code") {
+            return (
+              <code
+                key={index}
+                className="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-xs font-mono"
+              >
+                {part.content}
+              </code>
+            );
+          } else {
+            // Regular text - preserve line breaks
+            return (
+              <div key={index} className="whitespace-pre-wrap">
+                {part.content}
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+  };
 
   // TTS function to synthesize speech
   const synthesizeSpeech = async (
     text: string
   ): Promise<HTMLAudioElement | null> => {
     try {
-      const voiceId = teacher.ttsEngine.voiceName || "Ivy";
+      // Strip markdown/code formatting for TTS
+      const cleanText = text
+        .replace(/```[\s\S]*?```/g, " [code block] ")
+        .replace(/`([^`]+)`/g, " $1 ")
+        .replace(/\n+/g, " ")
+        .trim();
+
+      const voiceId = teacher.ttsEngine.voiceName || null;
       const voiceBaseUrl = teacher.ttsEngine.baseUrl || null;
-      const voiceModel = teacher.ttsEngine.model || "polly";
+      const voiceModel = teacher.ttsEngine.model || null;
 
       const response = await fetch("/api/tts", {
         method: "POST",
@@ -66,7 +197,7 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
         body: JSON.stringify({
           baseUrl: voiceBaseUrl,
           model: voiceModel,
-          Text: text,
+          Text: cleanText,
           OutputFormat: "mp3",
           VoiceId: voiceId,
           SampleRate: "22050",
@@ -91,12 +222,17 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
       } else {
         // Fallback to Web Speech API
         console.log("TTS API failed, falling back to Web Speech API");
-        return createWebSpeechAudio(text);
+        return createWebSpeechAudio(cleanText);
       }
     } catch (error) {
       console.error("TTS API error:", error);
       // Fallback to Web Speech API
-      return createWebSpeechAudio(text);
+      const cleanText = text
+        .replace(/```[\s\S]*?```/g, " [code block] ")
+        .replace(/`([^`]+)`/g, " $1 ")
+        .replace(/\n+/g, " ")
+        .trim();
+      return createWebSpeechAudio(cleanText);
     }
   };
 
@@ -111,12 +247,14 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
         const preferredVoice =
           voices.find((voice) =>
             teacher.gender.toLowerCase() === "female"
-              ? voice.name.toLowerCase().includes("female") ||
-                voice.name.toLowerCase().includes("woman")
-              : voice.name.toLowerCase().includes("male") ||
-                voice.name.toLowerCase().includes("man")
+              ? voice.name.toLowerCase().trim() === "female" ||
+                voice.name.toLowerCase().trim() === "woman"
+              : teacher.gender.toLowerCase() === "male"
+              ? voice.name.toLowerCase().trim() === "male" ||
+                voice.name.toLowerCase().trim() === "man"
+              : true
           ) || voices[0];
-
+        console.log(teacher.gender.toLowerCase(), preferredVoice);
         utterance.voice = preferredVoice;
       }
 
@@ -145,133 +283,168 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
 
     return null;
   };
+
   // Handle speech bubble visibility and typing animation
   React.useEffect(() => {
-    if (speechBubble?.isVisible && speechBubble.message) {
-      setShowBubble(true);
-      setIsTyping(true);
-      setDisplayedText("");
+    // Only process if there's a new message or if visibility changed
+    const currentMessage = speechBubble?.message || "";
+    const isVisible = speechBubble?.isVisible || false;
 
-      // Stop any currently playing audio
+    // If not visible, hide everything
+    if (!isVisible) {
+      setShowBubble(false);
+      setDisplayedText("");
+      setLastMessage("");
       if (currentAudio) {
         currentAudio.pause();
         setCurrentAudio(null);
       }
+      return;
+    }
 
-      let typingInterval: NodeJS.Timeout;
-      let hideTimeout: NodeJS.Timeout;
-      let audioEndedListener: () => void;
-      let audioErrorListener: () => void;
+    // If it's the same message as before and we're already showing it, don't restart
+    if (currentMessage === lastMessage && showBubble && currentMessage !== "") {
+      return;
+    }
 
-      // Start TTS synthesis
-      synthesizeSpeech(speechBubble.message)
-        .then((audio) => {
-          if (audio) {
-            // Set up event listeners before playing
-            audioEndedListener = () => {
-              if (speechBubble.autoHide) {
-                hideTimeout = setTimeout(() => {
-                  setShowBubble(false);
-                  setCurrentAudio(null);
-                  onSpeechComplete?.();
-                }, 1500);
-              }
-            };
+    // If there's no message, don't show anything
+    if (!currentMessage) {
+      setShowBubble(false);
+      setDisplayedText("");
+      return;
+    }
 
-            audioErrorListener = () => {
-              console.warn("Audio playback error, completing speech");
-              if (speechBubble.autoHide) {
-                hideTimeout = setTimeout(() => {
-                  setShowBubble(false);
-                  setCurrentAudio(null);
-                  onSpeechComplete?.();
-                }, 1500);
-              }
-            };
+    // Set the new message as the last message
+    setLastMessage(currentMessage);
 
-            audio.addEventListener("ended", audioEndedListener);
-            audio.addEventListener("error", audioErrorListener);
+    setShowBubble(true);
+    setIsTyping(true);
+    setDisplayedText("");
 
-            setCurrentAudio(audio);
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+    }
 
-            // Play with error handling
-            audio.play().catch((error) => {
-              console.warn("Audio play failed:", error);
-              // Still complete the speech flow even if audio fails
-              if (speechBubble.autoHide) {
-                const estimatedDuration = Math.max(
-                  4000,
-                  speechBubble.message.length * 80
-                );
-                hideTimeout = setTimeout(() => {
-                  setShowBubble(false);
-                  setCurrentAudio(null);
-                  onSpeechComplete?.();
-                }, estimatedDuration);
-              }
-            });
-          } else if (speechBubble.autoHide) {
-            // If no audio, use text-based timing
-            const estimatedDuration = Math.max(
-              4000,
-              speechBubble.message.length * 80
-            );
-            hideTimeout = setTimeout(() => {
-              setShowBubble(false);
-              onSpeechComplete?.();
-            }, estimatedDuration);
-          }
-        })
-        .catch((error) => {
-          console.error("TTS synthesis failed:", error);
-          // Ensure speech completes even if TTS fails
-          if (speechBubble.autoHide) {
-            const estimatedDuration = Math.max(
-              4000,
-              speechBubble.message.length * 80
-            );
-            hideTimeout = setTimeout(() => {
-              setShowBubble(false);
-              onSpeechComplete?.();
-            }, estimatedDuration);
-          }
-        });
+    let typingInterval: NodeJS.Timeout;
+    let hideTimeout: NodeJS.Timeout;
+    let audioEndedListener: () => void;
+    let audioErrorListener: () => void;
 
-      // Typing animation
+    // Start TTS synthesis
+    synthesizeSpeech(currentMessage)
+      .then((audio) => {
+        if (audio) {
+          // Set up event listeners before playing
+          audioEndedListener = () => {
+            if (speechBubble.autoHide) {
+              hideTimeout = setTimeout(() => {
+                setShowBubble(false);
+                setCurrentAudio(null);
+                setLastMessage("");
+                onSpeechComplete?.();
+              }, 1500);
+            }
+          };
+
+          audioErrorListener = () => {
+            console.warn("Audio playback error, completing speech");
+            if (speechBubble.autoHide) {
+              hideTimeout = setTimeout(() => {
+                setShowBubble(false);
+                setCurrentAudio(null);
+                setLastMessage("");
+                onSpeechComplete?.();
+              }, 1500);
+            }
+          };
+
+          audio.addEventListener("ended", audioEndedListener);
+          audio.addEventListener("error", audioErrorListener);
+
+          setCurrentAudio(audio);
+
+          // Play with error handling
+          audio.play().catch((error) => {
+            console.warn("Audio play failed:", error);
+            // Still complete the speech flow even if audio fails
+            if (speechBubble.autoHide) {
+              const estimatedDuration = Math.max(
+                4000,
+                currentMessage.length * 80
+              );
+              hideTimeout = setTimeout(() => {
+                setShowBubble(false);
+                setCurrentAudio(null);
+                setLastMessage("");
+                onSpeechComplete?.();
+              }, estimatedDuration);
+            }
+          });
+        } else if (speechBubble.autoHide) {
+          // If no audio, use text-based timing
+          const estimatedDuration = Math.max(4000, currentMessage.length * 80);
+          hideTimeout = setTimeout(() => {
+            setShowBubble(false);
+            setLastMessage("");
+            onSpeechComplete?.();
+          }, estimatedDuration);
+        }
+      })
+      .catch((error) => {
+        console.error("TTS synthesis failed:", error);
+        // Ensure speech completes even if TTS fails
+        if (speechBubble.autoHide) {
+          const estimatedDuration = Math.max(4000, currentMessage.length * 80);
+          hideTimeout = setTimeout(() => {
+            setShowBubble(false);
+            setLastMessage("");
+            onSpeechComplete?.();
+          }, estimatedDuration);
+        }
+      });
+
+    // Typing animation - for large content, show immediately
+    const messageLength = currentMessage.length;
+    if (messageLength > 500) {
+      // For long messages, show content immediately
+      setDisplayedText(currentMessage);
+      setIsTyping(false);
+    } else {
+      // Normal typing animation for shorter messages
       let currentIndex = 0;
       typingInterval = setInterval(() => {
-        if (currentIndex < speechBubble.message.length) {
-          setDisplayedText(speechBubble.message.slice(0, currentIndex + 1));
+        if (currentIndex < currentMessage.length) {
+          setDisplayedText(currentMessage.slice(0, currentIndex + 1));
           currentIndex++;
         } else {
           setIsTyping(false);
           clearInterval(typingInterval);
         }
       }, 50);
-
-      return () => {
-        clearInterval(typingInterval);
-        clearTimeout(hideTimeout);
-        if (currentAudio) {
-          // Remove event listeners before pausing
-          if (audioEndedListener) {
-            currentAudio.removeEventListener("ended", audioEndedListener);
-          }
-          if (audioErrorListener) {
-            currentAudio.removeEventListener("error", audioErrorListener);
-          }
-          currentAudio.pause();
-        }
-      };
-    } else {
-      setShowBubble(false);
-      setDisplayedText("");
-      if (currentAudio) {
-        currentAudio.pause();
-        setCurrentAudio(null);
-      }
     }
-  }, [speechBubble?.isVisible, speechBubble?.message, onSpeechComplete]);
+
+    return () => {
+      clearInterval(typingInterval);
+      clearTimeout(hideTimeout);
+      if (currentAudio) {
+        // Remove event listeners before pausing
+        if (audioEndedListener) {
+          currentAudio.removeEventListener("ended", audioEndedListener);
+        }
+        if (audioErrorListener) {
+          currentAudio.removeEventListener("error", audioErrorListener);
+        }
+        currentAudio.pause();
+      }
+    };
+  }, [
+    speechBubble?.isVisible,
+    speechBubble?.message,
+    speechBubble?.autoHide,
+    onSpeechComplete,
+  ]);
 
   // Cleanup audio on component unmount
   React.useEffect(() => {
@@ -340,36 +513,44 @@ const TeacherDisplay: React.FC<TeacherDisplayProps> = ({
         ${className}
       `}
     >
-      {/* Speech Bubble */}
+      {/* Speech Bubble - Made much larger for long content */}
       {showBubble && (
-        <div className={`absolute ${bubblePos.container} w-64 max-w-xs`}>
+        <div
+          className={`absolute ${bubblePos.container} w-96 max-w-2xl max-h-96`}
+        >
           <div className="relative">
             {/* Bubble Content */}
-            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-3 relative">
+            <div className="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4 relative max-h-96 overflow-y-auto">
               <div className="text-sm text-gray-800 leading-relaxed">
-                {displayedText}
+                {displayedText && renderFormattedContent(displayedText)}
                 {isTyping && (
                   <span className="inline-block w-2 h-4 bg-gray-600 ml-1 animate-pulse"></span>
                 )}
               </div>
 
-              {/* Close button (optional) */}
+              {/* Close button */}
               {!speechBubble?.autoHide && (
                 <button
                   onClick={() => {
                     setShowBubble(false);
+                    setLastMessage("");
                     if (currentAudio) {
                       currentAudio.pause();
                       setCurrentAudio(null);
                     }
                     onSpeechComplete?.();
                   }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center text-xs text-gray-600 transition-colors"
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center text-sm text-gray-600 transition-colors font-bold"
                   aria-label="Close speech bubble"
                 >
                   ×
                 </button>
               )}
+
+              {/* Scroll indicator for long content */}
+              <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                {displayedText.length > 1000 && "Scroll for more..."}
+              </div>
             </div>
 
             {/* Arrow pointing to teacher */}
