@@ -12,6 +12,7 @@ import {
   Target,
   Award,
 } from "lucide-react";
+import Link from "next/link";
 
 const QuizHomepage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -109,11 +110,13 @@ const QuizHomepage = () => {
             }`}
           >
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <button className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
-                <Play className="w-5 h-5" />
-                <span>Start Playing Now</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link href={"/quiz"}>
+                <button className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
+                  <Play className="w-5 h-5" />
+                  <span>Start Playing Now</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </Link>
               <button className="px-8 py-4 border-2 border-purple-400 rounded-full text-lg font-semibold hover:bg-purple-400/10 transition-all duration-300 transform hover:scale-105">
                 Browse Categories
               </button>
