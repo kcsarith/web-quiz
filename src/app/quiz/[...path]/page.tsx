@@ -1177,7 +1177,7 @@ Provide specific, actionable advice that will help the student improve their sol
               </button>
             </div>
             {currentQuestion.question_images.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-4">
+              <div className="mb-4 flex-wrap gap-4">
                 {currentQuestion.question_images.map(
                   (img, index) =>
                     img && (
@@ -1258,7 +1258,9 @@ Provide specific, actionable advice that will help the student improve their sol
                           {currentQuestion.note_images[index] && (
                             <div className="mt-2 relative h-20 w-auto">
                               <Image
-                                src={currentQuestion.note_images[index] as string}
+                                src={
+                                  currentQuestion.note_images[index] as string
+                                }
                                 alt={`Note ${index + 1} image`}
                                 className="rounded-md"
                                 fill
@@ -1290,7 +1292,9 @@ Provide specific, actionable advice that will help the student improve their sol
               onClick={handleNext}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              {currentQuestionIndex === questions.length - 1 ? "Finish" : "Next"}
+              {currentQuestionIndex === questions.length - 1
+                ? "Finish"
+                : "Next"}
             </button>
           </div>
         </div>
